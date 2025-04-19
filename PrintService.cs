@@ -1,28 +1,18 @@
 ﻿using System.IO.Compression;
 using System.Text;
 
-namespace Sample7
+namespace Sample7 { 
     public enum PrintServiceSupportedFileType
     {
-        Jpg = 0,
-        Bmp = 1,
-        Png = 2,
-        Tiff = 3,
-        Txt = 4,
-        Pdf = 5,
-        Unknown = 6,
-        Xlsx = 11,
-        Docx = 12,
-        Doc = 13,
-        Xls = 14,
-        Rtf = 15,
-        Html = 16,
-        Htm = 17,
-        Jpeg = 18,
-        Xlsm = 19,
-        Tif = 20
-    }
+        Unknown = 0,
+        ImageFile,
+        TextFile,
+        CalcFile,
+        DocumFile,
+        HtmlFile,
+        PdfFile
 
+    }
     public enum ImageFormat
     {
         Jpeg,
@@ -33,40 +23,36 @@ namespace Sample7
 
     public static class PrintService
     {
-        static byte[] ConvertInputFileToPdf(byte[] inputFileBytes, PrintServiceSupportedFileType inputFileType)
+        /// <summary>
+        /// Конвертация входного файла в соответствии с его именем
+        /// </summary>
+        /// <param name="inputFileBytes">Содержимое исходного файла</param>
+        /// <param name="inputFileName">Имя файла</param>
+        /// <returns>Сконвертироывнное содержимое</returns>
+        static byte[] ConvertInputFileToPdf(byte[] inputFileBytes, string inputFileName)
         {
-            byte[] pdfFileBytes = null;
+            byte[] pdfFileBytes;
+            PrintServiceSupportedFileType inputFileType = DetectFileType(inputFileName);
+
             switch (inputFileType)
             {
-                case PrintServiceSupportedFileType.Pdf:
+                case PrintServiceSupportedFileType.PdfFile:
                     // PDF конвертировать не нужно - его напрямую в обработку отдаем
                     pdfFileBytes = inputFileBytes;
                     break;
-                case PrintServiceSupportedFileType.Jpeg:
-                case PrintServiceSupportedFileType.Jpg:
-                case PrintServiceSupportedFileType.Bmp:
-                case PrintServiceSupportedFileType.Png:
-                case PrintServiceSupportedFileType.Tif:
-                case PrintServiceSupportedFileType.Tiff:
-                    pdfFileBytes = ConvertImageToPdf(inputFileBytes, inputFileType);
+                case PrintServiceSupportedFileType.ImageFile:
+                    pdfFileBytes = ConvertSupportedImageToPdf(inputFileBytes, inputFileName);
                     break;
-                case PrintServiceSupportedFileType.Txt:
+                case PrintServiceSupportedFileType.TextFile:
                     pdfFileBytes = ConvertTxtToPdf(inputFileBytes);
                     break;
-                case PrintServiceSupportedFileType.Xls:
-                case PrintServiceSupportedFileType.Xlsx:
-                case PrintServiceSupportedFileType.Xlsm:
+                case PrintServiceSupportedFileType.CalcFile:
                     pdfFileBytes = ConvertXlsxToPdf(inputFileBytes);
                     break;
-                case PrintServiceSupportedFileType.Doc:
-                case PrintServiceSupportedFileType.Docx:
+                case PrintServiceSupportedFileType.DocumFile:
                     pdfFileBytes = ConvertDocxToPdf(inputFileBytes);
                     break;
-                case PrintServiceSupportedFileType.Rtf:
-                    pdfFileBytes = ConvertRtfToPdf(inputFileBytes);
-                    break;
-                case PrintServiceSupportedFileType.Htm:
-                case PrintServiceSupportedFileType.Html:
+                case PrintServiceSupportedFileType.HtmlFile:
                     pdfFileBytes = ConvertHtmlToPdf(inputFileBytes);
                     break;
                 case PrintServiceSupportedFileType.Unknown:
@@ -76,11 +62,6 @@ namespace Sample7
             }
 
             return pdfFileBytes;
-        }
-
-        private static byte[] ConvertRtfToPdf(byte[] inputFileBytes)
-        {
-            return ConvertDocxToPdf(inputFileBytes);
         }
 
         static byte[] ConvertXlsxToPdf(byte[] inputFileBytes)
@@ -100,7 +81,7 @@ namespace Sample7
         static byte[] ConvertUnknownToPdf(byte[] inputFileBytes)
         {
             //специфика конвертации неизвестного формата в pdf
-            Console.WriteLine("{0}{1}", inputFileBytes);
+            Console.WriteLine("{0}", inputFileBytes);
             throw new NotImplementedException();
         }
 
@@ -117,171 +98,115 @@ namespace Sample7
             Console.WriteLine(inputFileBytes);
             throw new NotImplementedException();
         }
-
-        static byte[] ConvertImageToPdf(byte[] inputFileBytes, PrintServiceSupportedFileType inputFileType)
+        /// <summary>
+        /// Тип преобразования для файлов изображений
+        /// </summary>
+        /// <param name="inputFileName">Имя файла изображения</param>
+        /// <returns>Тип преобразования</returns>
+        static ImageFormat? DetectImageFormat(string inputFileName)
         {
-            ImageFormat? supportedImageFileType = null;
+            string inputFileExtention = GetExtensionFromFileName(inputFileName);
 
-            switch (inputFileType)
-            {
-                case PrintServiceSupportedFileType.Jpg:
-                case PrintServiceSupportedFileType.Jpeg:
-                    supportedImageFileType = ImageFormat.Jpeg;
-                    break;
-                case PrintServiceSupportedFileType.Png:
-                    supportedImageFileType = ImageFormat.Png;
-                    break;
-                case PrintServiceSupportedFileType.Tiff:
-                case PrintServiceSupportedFileType.Tif:
-                    supportedImageFileType = ImageFormat.Tiff;
-                    break;
-                case PrintServiceSupportedFileType.Bmp:
-                    supportedImageFileType = ImageFormat.Bmp;
-                    break;
-            }
-
-            return ConvertSupportedImageToPdf(inputFileBytes, supportedImageFileType);
+            if (inputFileExtention == "jpg") 
+                return ImageFormat.Jpeg;
+            else if (inputFileExtention == "jpeg") 
+                return ImageFormat.Jpeg;
+            else if (inputFileExtention == "png") 
+                return ImageFormat.Png;
+            else if (inputFileExtention == "tif") 
+                return ImageFormat.Tiff;
+            else if (inputFileExtention == "tiff") 
+                return ImageFormat.Tiff;
+            else if (inputFileExtention == "bmp") 
+                return ImageFormat.Bmp;
+            return null;
         }
 
-        static byte[] ConvertSupportedImageToPdf(byte[] inputFileBytes, ImageFormat? fileType)
+        static byte[] ConvertSupportedImageToPdf(byte[] inputFileBytes, string inputFileName)
         {
+            // Здесь придется переделать на другой enum
+            ImageFormat? supportedImageFileType = DetectImageFormat(inputFileName);
             //специфика конвертации изображения в pdf
-            Console.WriteLine("{0}{1}", inputFileBytes, fileType);
+            Console.WriteLine("{0}{1}", inputFileBytes, supportedImageFileType);
             throw new NotImplementedException();
         }
-
-        static PrintServiceSupportedFileType DetectFileType(string fileName)
+        /// <summary>
+        /// Распознавание типа преобразования файла по его расширению
+        /// </summary>
+        /// <param name="inputFileName">Имя файла с расширением</param>
+        /// <returns>Тип допустимой конвертации</returns>
+        static PrintServiceSupportedFileType DetectFileType(string inputFileName)
         {
-            var detectedType = PrintServiceSupportedFileType.Unknown;
-            var fileExtension = GetExtensionFromFileName(fileName);
+            string inputFileExtention = GetExtensionFromFileName(inputFileName);
 
-            if (IsInputFilePdf(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Pdf;
-            else if (IsInputFileJpg(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Jpg;
-            else if (IsInputFileJpeg(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Jpeg;
-            else if (IsInputFilePng(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Png;
-            else if (IsInputFileBmp(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Bmp;
-            else if (IsInputFileTiff(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Tiff;
-            else if (IsInputFileTif(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Tif;
-            else if (IsInputFileXlsx(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Xlsx;
-            else if (IsInputFileXls(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Xls;
-            else if (IsInputFileXlsm(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Xlsm;
-            else if (IsInputFileDocx(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Docx;
-            else if (IsInputFileDoc(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Doc;
-            else if (IsInputFileTxt(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Txt;
-            else if (IsInputFileRtf(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Rtf;
-            else if (IsInputFileHtml(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Html;
-            else if (IsInputFileHtm(fileExtension))
-                detectedType = PrintServiceSupportedFileType.Htm;
-            return detectedType;
+            if (inputFileExtention == "pdf")
+                return PrintServiceSupportedFileType.PdfFile;
+            else if (inputFileExtention == "jpg")
+                return PrintServiceSupportedFileType.ImageFile;
+            else if (inputFileExtention == "jpeg")
+                return PrintServiceSupportedFileType.ImageFile;
+            else if (inputFileExtention == "png")
+                return PrintServiceSupportedFileType.ImageFile;
+            else if (inputFileExtention == "bmp")
+                return PrintServiceSupportedFileType.ImageFile;
+            else if (inputFileExtention == "tiff")
+                return PrintServiceSupportedFileType.ImageFile;
+            else if (inputFileExtention == "tif")
+                return PrintServiceSupportedFileType.ImageFile;
+            else if (inputFileExtention == "xlsx")
+                return PrintServiceSupportedFileType.CalcFile;
+            else if (inputFileExtention == "xls")
+                return PrintServiceSupportedFileType.CalcFile;
+            else if (inputFileExtention == "xlsm")
+                return PrintServiceSupportedFileType.CalcFile;
+            else if (inputFileExtention == "docx")
+                return PrintServiceSupportedFileType.DocumFile;
+            else if (inputFileExtention == "doc")
+                return PrintServiceSupportedFileType.DocumFile;
+            else if (inputFileExtention == "txt")
+                return PrintServiceSupportedFileType.TextFile;
+            else if (inputFileExtention == "rtf")
+                return PrintServiceSupportedFileType.DocumFile;
+            else if (inputFileExtention == "html")
+                return PrintServiceSupportedFileType.HtmlFile;
+            else if (inputFileExtention == "htm")
+                return PrintServiceSupportedFileType.HtmlFile;
+            return PrintServiceSupportedFileType.Unknown;
         }
-
-        static bool IsInputFileRtf(string fileExtension)
-        {
-            return fileExtension == "rtf";
-        }
-
-        static bool IsInputFilePdf(string fileExtension)
-        {
-            return fileExtension == "pdf";
-        }
-
-        static bool IsInputFileJpg(string fileExtension)
-        {
-            return fileExtension == "jpg";
-        }
-
-        static bool IsInputFileJpeg(string fileExtension)
-        {
-            return fileExtension == "jpeg";
-        }
-
-        static bool IsInputFilePng(string fileExtension)
-        {
-            return fileExtension == "png";
-        }
-
-        static bool IsInputFileBmp(string fileExtension)
-        {
-            return fileExtension == "bmp";
-        }
-
-        static bool IsInputFileTiff(string fileExtension)
-        {
-            return fileExtension == "tiff";
-        }
-
-        static bool IsInputFileTif(string fileExtension)
-        {
-            return fileExtension == "tif";
-        }
-
-        static bool IsInputFileTxt(string fileExtension)
-        {
-            return fileExtension == "txt";
-        }
-
-        static bool IsInputFileXlsx(string fileExtension)
-        {
-            return fileExtension == "xlsx";
-        }
-
-        static bool IsInputFileXls(string fileExtension)
-        {
-            return fileExtension == "xls";
-        }
-
-        static bool IsInputFileXlsm(string fileExtension)
-        {
-            return fileExtension == "xlsm";
-        }
-
-        static bool IsInputFileDocx(string fileExtension)
-        {
-            return fileExtension == "docx";
-        }
-
-        static bool IsInputFileDoc(string fileExtension)
-        {
-            return fileExtension == "doc";
-        }
-
-        static bool IsInputFileHtml(string fileExtension)
-        {
-            return fileExtension == "html";
-        }
-
-        static bool IsInputFileHtm(string fileExtension)
-        {
-            return fileExtension == "htm";
-        }
-
+        /// <summary>
+        /// Выделение расширения файла из его имени
+        /// </summary>
+        /// <param name="fileName">Имя файла</param>
+        /// <returns>Расширение в нижнем регистре без начальной точки</returns>
         static string GetExtensionFromFileName(string fileName)
         {
             return Path.GetExtension(fileName).TrimStart('.').ToLower().Trim();
         }
-
+        /// <summary>
+        /// Добавление водяных знаков в файл pdf
+        /// </summary>
+        /// <param name="pdfBytes">Содержимое исодного файла</param>
+        /// <param name="additionalText">Текст водяного знака</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException">Пока не реализовано</exception>
         static byte[] AddWatermarkToPdf(byte[] pdfBytes, string additionalText)
         {
             //модификация уже сконвертиованного PDF, на каждую страницу в колонтитул добавляется информация об электронных подписях документа
             Console.WriteLine("{0}{1}", pdfBytes, additionalText);
             throw new NotImplementedException();
         }
-
+        /// <summary>
+        /// Основная процедура преобразования
+        /// </summary>
+        /// <param name="inputFileBytes">Содержимое исходного файла или zip-архива</param>
+        /// <param name="fileName">Наименование файла или архива</param>
+        /// <param name="documentIndefNumber">Регистрационный номер документа</param>
+        /// <param name="documentRegisteredDateTime">Дата регистрации документа</param>
+        /// <param name="throwErrorOnUnkwonType">Выбрасывать исключение при ошибке</param>
+        /// <param name="certificate">Параметры организации для штампа</param>
+        /// <param name="proxyData">Параметры доверенности для штампа</param>
+        /// <returns>Преобразованный файл или архив преоразованных файлов</returns>
+        /// <exception cref="Exception"></exception>
         public static byte[] ProcessInputFile(
             byte[] inputFileBytes,
             string fileName,
@@ -292,54 +217,38 @@ namespace Sample7
             Dictionary<string, string> proxyData = null)
         {
             // Определяем тип исходного файла
-            var detectedFileType = DetectFileType(fileName);
+            string fileExtention = GetExtensionFromFileName(fileName);
 
-            byte[] pdf = null;
-            if (detectedFileType == PrintServiceSupportedFileType.Unknown && fileName.EndsWith("zip", StringComparison.InvariantCultureIgnoreCase))
-            {
-                var entries = new Dictionary<string, byte[]>();
+            // Для архивов отдельный обработчик
+            if (fileExtention == "zip")
+                return ProcessInputZipFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
 
-                using (var zipStream = new MemoryStream(inputFileBytes))
-                using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read, false, Encoding.GetEncoding("cp866")))
-                {
-                    foreach (var zipArchiveEntry in zipArchive.Entries)
-                    {
-                        using (var memoryStream = new MemoryStream())
-                        using (var entryStream = zipArchiveEntry.Open())
-                        {
-                            entryStream.CopyTo(memoryStream);
-                            entries.Add(zipArchiveEntry.FullName, memoryStream.ToArray());
-                        }
-                    }
-                }
+            // Определяем тип файла
+            var detectedFileType = DetectFileType(fileExtention);
 
-                var countFileToConvert = entries.Where(el => DetectFileType(el.Key) != PrintServiceSupportedFileType.Unknown).Count();
-                if (countFileToConvert == 1)
-                {
-                    var doc = entries.Where(el => DetectFileType(el.Key) != PrintServiceSupportedFileType.Unknown).FirstOrDefault();
-                    pdf = ConvertInputFileToPdf(doc.Value, DetectFileType(doc.Key));
-                }
-                else if (countFileToConvert > 1)
-                {
-                    pdf = AddPdfFilesToZip(entries, documentIndefNumber, documentRegisteredDateTime, certificate);
-                    return pdf;
-                }
-            }
-            else
-            {
-                if (detectedFileType == PrintServiceSupportedFileType.Unknown && throwErrorOnUnkwonType)
-                    throw new Exception($"Ошибка конвертации документа ({fileName}) при формировании печатной формы документа в PDF.");
+            // тип не определился
+            if (detectedFileType == PrintServiceSupportedFileType.Unknown && throwErrorOnUnkwonType)
+               throw new Exception($"Ошибка конвертации документа ({fileName}) при формировании печатной формы документа в PDF.");
 
-                // Превращаем его в PDF
-                pdf = ConvertInputFileToPdf(inputFileBytes, detectedFileType);
-            }
+            // Тип определился - превращаем его в PDF
+            byte[] pdf = ConvertInputFileToPdf(inputFileBytes, fileName);
 
+            // Что-то пошло не так
             if (pdf == null)
                 throw new Exception($"Ошибка при формировании печатной формы документа.");
 
+            // Добавляем штамп и на выход
             return AddStampToPdf(pdf, documentIndefNumber, documentRegisteredDateTime, certificate, proxyData);
         }
-
+        /// <summary>
+        /// Добавление штампа в документ
+        /// </summary>
+        /// <param name="pdf">Содержимое документа</param>
+        /// <param name="documentIndefNumber">Регистрационный номер</param>
+        /// <param name="documentRegisteredDateTime">Дата регистрации документа</param>
+        /// <param name="certificate">Параметры организации для штампа</param>
+        /// <param name="proxyData">Параметры доверенности для штампа</param>
+        /// <returns></returns>
         public static byte[] AddStampToPdf(byte[] pdf, string documentIndefNumber, DateTime? documentRegisteredDateTime, Dictionary<string, string> certificate = null, Dictionary<string, string> proxyData = null)
         {
             var documentRegisteredDateTimeString = documentRegisteredDateTime.HasValue
@@ -363,9 +272,9 @@ namespace Sample7
             certificate?.TryGetValue("NotAfter", out endDataSertificate);
             certificate?.TryGetValue("CertificateSerialNumber", out certificateSerialNumber);
 
-            string proxyNum = null;
-            string proxyStartDate = null;
-            string proxyEndDate = null;
+            string proxyNum;
+            string proxyStartDate;
+            string proxyEndDate;
             var proxyLine = "";
             if (proxyData != null)
             {
@@ -397,36 +306,106 @@ namespace Sample7
 
             return watermarkedPdf;
         }
-
-        private static byte[] AddPdfFilesToZip(Dictionary<string, byte[]> entries, string documentIndefNumber, DateTime? documentRegisteredDateTime, Dictionary<string, string> certificate)
+        /// <summary>
+        /// Обработка zip-архивов
+        /// </summary>
+        /// <param name="inputFileBytes">Содержимое архива</param>
+        /// <param name="fileName">Наименование файла архива</param>
+        /// <param name="documentIndefNumber">Регистрационный номер документа</param>
+        /// <param name="documentRegisteredDateTime">Дата регистрации</param>
+        /// <param name="throwErrorOnUnkwonType">Выбьасывать исключение при ощибке</param>
+        /// <param name="certificate">Параметры организации для штампа</param>
+        /// <param name="proxyData">Параметры доверенности для штампа</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private static byte[] ProcessInputZipFile(
+            byte[] inputFileBytes,
+            string fileName,
+            string documentIndefNumber,
+            DateTime? documentRegisteredDateTime,
+            bool throwErrorOnUnkwonType,
+            Dictionary<string, string> certificate = null,
+            Dictionary<string, string> proxyData = null)
         {
-            using (var zipResponse = new MemoryStream())
+            // Определяем тип исходного файла
+            string fileExtention = GetExtensionFromFileName(fileName);
+
+            byte[] outZip = null;
+            if (fileExtention != "zip")
+                return outZip;
+
+            var entries = new Dictionary<string, byte[]>();
+
+            using (var zipStream = new MemoryStream(inputFileBytes))
+            using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read, false, Encoding.GetEncoding("cp866")))
             {
-                using (var zipFileResponse = new ZipArchive(zipResponse, ZipArchiveMode.Create))
+                foreach (var zipArchiveEntry in zipArchive.Entries)
                 {
-                    foreach (var item in entries)
+                    using var memoryStream = new MemoryStream();
+                    using var entryStream = zipArchiveEntry.Open();
                     {
-                        PrintServiceSupportedFileType entryDetectedFileType = DetectFileType(item.Key);
-                        if (entryDetectedFileType != PrintServiceSupportedFileType.Unknown)
+                        fileExtention = GetExtensionFromFileName(zipArchiveEntry.FullName);
+                        if (DetectFileType(fileExtention) != PrintServiceSupportedFileType.Unknown)
                         {
-                            // Превращаем его в PDF
-                            var pdf = ConvertInputFileToPdf(item.Value, entryDetectedFileType);
-                            pdf = AddStampToPdf(pdf, documentIndefNumber, documentRegisteredDateTime, certificate);
-                            var fileName = item.Key.Remove(item.Key.LastIndexOf('.'));
-                            var file = zipFileResponse.CreateEntry(fileName + "_ПечатнаяФорма.pdf");
-                            using (var stream = file.Open())
-                            {
-                                using (var fileMemoryStream = new MemoryStream(pdf))
-                                {
-                                    fileMemoryStream.WriteTo(stream);
-                                }
-                            }
+                            entryStream.CopyTo(memoryStream);
+                            // В список добавляем только конвертируемые файлы
+                            entries.Add(zipArchiveEntry.FullName, memoryStream.ToArray());
                         }
                     }
                 }
-
-                return zipResponse.ToArray();
             }
+
+            if (entries.Count == 0 && throwErrorOnUnkwonType)
+            { 
+                throw new Exception($"Ошибка конвертации архива ({fileName}) допустимые файлы не обнаружены.");
+            }
+            else if (entries.Count == 1)
+            {
+                // странный конечно алгоритм - если в архиве один пригодный файл, то возвращаем его в несхатом виде
+                var doc = entries.FirstOrDefault();
+                outZip = ConvertInputFileToPdf(doc.Value, doc.Key);
+                if (outZip == null && throwErrorOnUnkwonType)
+                    throw new Exception($"Ошибка при формировании печатной формы документа ({doc.Key}).");
+
+                return AddStampToPdf(outZip, documentIndefNumber, documentRegisteredDateTime, certificate, proxyData);
+            }
+            else if (entries.Count > 1)
+            {
+                // а если в архиве несколько пригодных файлов, то конвертируем и пересхимаем их в новый архив
+                outZip = AddPdfFilesToZip(entries, documentIndefNumber, documentRegisteredDateTime, certificate);
+            }
+
+            return outZip;
+        }
+        /// <summary>
+        /// Конвертация файлов и добавление их в новый архив
+        /// Все файлы должны быть конвертируемого типа,
+        /// потому что повторная проверка не производится
+        /// </summary>
+        /// <param name="entries">Массив файлов из исходного архива</param>
+        /// <param name="documentIndefNumber">Регистрационный номер</param>
+        /// <param name="documentRegisteredDateTime">Дата регистрации</param>
+        /// <param name="certificate">Параметры организации для штампа</param>
+        /// <returns></returns>
+        private static byte[] AddPdfFilesToZip(Dictionary<string, byte[]> entries, string documentIndefNumber, DateTime? documentRegisteredDateTime, Dictionary<string, string> certificate)
+        {
+            using var zipResponse = new MemoryStream();
+            using (var zipFileResponse = new ZipArchive(zipResponse, ZipArchiveMode.Create))
+            {
+                foreach (var item in entries)
+                {
+                    // Превращаем его в PDF, повторная проверка не производится
+                    var pdf = ConvertInputFileToPdf(item.Value, item.Key);
+                    pdf = AddStampToPdf(pdf, documentIndefNumber, documentRegisteredDateTime, certificate);
+                    var fileName = item.Key.Remove(item.Key.LastIndexOf('.'));
+                    var file = zipFileResponse.CreateEntry(fileName + "_ПечатнаяФорма.pdf");
+                    using (var stream = file.Open())
+                    using (var fileMemoryStream = new MemoryStream(pdf))
+                    fileMemoryStream.WriteTo(stream);
+                }
+            }
+
+            return zipResponse.ToArray();
         }
     }
 }
