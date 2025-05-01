@@ -1,9 +1,4 @@
-﻿using System.IO.Compression;
-using System.Text;
-using Sample7.Enums;
-using Sample7.Convertors;
-using Sample7.Detectors;
-using Sample7.PdfAdditions;
+﻿using Sample7.Convertors;
 
 namespace Sample7 { 
 
@@ -37,22 +32,7 @@ namespace Sample7 {
             if (fileExtention == "zip")
                 return PrintService.ProcessInputZipFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
 
-            // Определяем тип файла
-            var detectedFileType = DetectTo.DetectFileType(fileExtention);
-
-            // тип не определился
-            if (detectedFileType == PrintServiceSupportedFileType.Unknown && throwErrorOnUnkwonType)
-               throw new Exception($"Ошибка конвертации документа ({fileName}) при формировании печатной формы документа в PDF.");
-
-            // Тип определился - превращаем его в PDF
-            byte[] pdf = ConvertTo.ConvertInputFileToPdf(inputFileBytes, fileName);
-
-            // Что-то пошло не так
-            if (pdf == null)
-                throw new Exception($"Ошибка при формировании печатной формы документа.");
-
-            // Добавляем штамп и на выход
-            return AddToPdf.AddStamp(pdf, documentIndefNumber, documentRegisteredDateTime, certificate, proxyData);
+            return PrintService.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
         }
     }
 }

@@ -64,18 +64,12 @@ namespace Sample7
             }
             else if (entries.Count == 1)
             {
-                // странный конечно алгоритм - если в архиве один пригодный файл, то возвращаем его в несхатом виде
-                var doc = entries.FirstOrDefault();
-                outZip = ConvertTo.ConvertInputFileToPdf(doc.Value, doc.Key);
-                if (outZip == null && throwErrorOnUnkwonType)
-                    throw new Exception($"Ошибка при формировании печатной формы документа ({doc.Key}).");
-
-                return AddToPdf.AddStamp(outZip, documentIndefNumber, documentRegisteredDateTime, certificate, proxyData);
+                return PrintService.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
             }
             else if (entries.Count > 1)
             {
                 // а если в архиве несколько пригодных файлов, то конвертируем и пересхимаем их в новый архив
-                outZip = AddPdfFilesToZip(entries, documentIndefNumber, documentRegisteredDateTime, certificate);
+                outZip = AddPdfFilesToZip(entries, documentIndefNumber, documentRegisteredDateTime, certificate, proxyData);
             }
 
             return outZip;
@@ -89,22 +83,25 @@ namespace Sample7
         /// <param name="documentIndefNumber">Регистрационный номер</param>
         /// <param name="documentRegisteredDateTime">Дата регистрации</param>
         /// <param name="certificate">Параметры организации для штампа</param>
-        /// <returns></returns>
-        private static byte[] AddPdfFilesToZip(Dictionary<string, byte[]> entries, string documentIndefNumber, DateTime? documentRegisteredDateTime, Dictionary<string, string> certificate)
+        /// <returns>Новый архив из преобрахованных файлов</returns>
+        private static byte[] AddPdfFilesToZip(Dictionary<string, byte[]> entries, string documentIndefNumber, DateTime? documentRegisteredDateTime, Dictionary<string, string> certificate, Dictionary<string, string> proxyData)
         {
+            bool throwErrorOnUnkwonType = false;
+
             using var zipResponse = new MemoryStream();
             using (var zipFileResponse = new ZipArchive(zipResponse, ZipArchiveMode.Create))
             {
                 foreach (var item in entries)
                 {
-                    // Превращаем его в PDF, повторная проверка не производится
-                    var pdf = ConvertTo.ConvertInputFileToPdf(item.Value, item.Key);
-                    pdf = AddToPdf.AddStamp(pdf, documentIndefNumber, documentRegisteredDateTime, certificate);
-                    var fileName = item.Key.Remove(item.Key.LastIndexOf('.'));
+                    // Превращаем его в PDF, повторная проверка не производится, потому что в списке только преобразуемые файлы
+                    var pdf = PrintService.ProcessSimpleFile(item.Value, item.Key, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+
+                    var fileName = Path.GetFileNameWithoutExtension(item.Key);
                     var file = zipFileResponse.CreateEntry(fileName + "_ПечатнаяФорма.pdf");
-                    using (var stream = file.Open())
-                    using (var fileMemoryStream = new MemoryStream(pdf))
-                        fileMemoryStream.WriteTo(stream);
+
+                    using var stream = file.Open();
+                    using var fileMemoryStream = new MemoryStream(pdf);
+                    fileMemoryStream.WriteTo(stream);
                 }
             }
 
