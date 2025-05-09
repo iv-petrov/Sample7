@@ -1,5 +1,4 @@
 ﻿using Sample7.Convertors;
-using Sample7.Processing;
 
 namespace Sample7 { 
 
@@ -31,9 +30,9 @@ namespace Sample7 {
 
             // Для архивов отдельный обработчик
             if (fileExtention == "zip")
-                return Processing.ProcessInputZipFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+                return Processing.ZipFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
 
-            return Processing.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+            return Processing.SimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
         }
     }
 }

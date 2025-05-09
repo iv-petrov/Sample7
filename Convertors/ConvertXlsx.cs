@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Sample7.Convertors
 {
-    public static partial class ConvertTo
+    public class ConvertXlsx : IConvertToPdf
     {
-        public static byte[] ConvertXlsxToPdf(byte[] inputFileBytes)
+        public byte[] ToPdf(byte[] inputFileBytes, string inpuFileName)
         {
             //специфика конвертации xlsx в pdf
             Console.WriteLine(inputFileBytes);

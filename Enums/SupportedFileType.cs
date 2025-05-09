@@ -1,6 +1,6 @@
 ﻿namespace Sample7.Enums
 {
-    public enum PrintServiceSupportedFileType
+    public enum SupportedFileType
     {
         Unknown = 0,
         ImageFile,

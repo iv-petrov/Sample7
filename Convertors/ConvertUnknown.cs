@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Sample7.Convertors
 {
-    public static partial class ConvertTo
+    public class ConvertUnknown : IConvertToPdf
     {
-        public static byte[] ConvertUnknownToPdf(byte[] inputFileBytes)
+        public byte[] ToPdf(byte[] inputFileBytes, string inputFileName)
         {
             //специфика конвертации неизвестного формата в pdf
             Console.WriteLine("{0}", inputFileBytes);
-            throw new NotImplementedException();
+            throw new Exception($"Ошибка конвертации документа ({inputFileName}) при формировании печатной формы документа в PDF.");
         }
     }
 }

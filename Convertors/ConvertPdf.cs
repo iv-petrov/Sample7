@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace Sample7.Convertors
 {
-    public class ConvertHtml : IConvertToPdf
+    public class ConvertPdf : IConvertToPdf
     {
         public byte[] ToPdf(byte[] inputFileBytes, string inpuFileName)
         {
-            //специфика конвертации html в pdf
-            Console.WriteLine(inputFileBytes);
-            throw new NotImplementedException();
+            return inputFileBytes;
         }
     }
 }

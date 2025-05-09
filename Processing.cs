@@ -5,10 +5,41 @@ using Sample7.PdfAdditions;
 using System.IO.Compression;
 using System.Text;
 
-namespace Sample7.Processing
+namespace Sample7
 {
-    public static partial class Processing
+    public static class Processing
     {
+        /// <summary>
+        /// Основная процедура преобразования
+        /// </summary>
+        /// <param name="inputFileBytes">Содержимое исходного файла или zip-архива</param>
+        /// <param name="fileName">Наименование файла или архива</param>
+        /// <param name="documentIndefNumber">Регистрационный номер документа</param>
+        /// <param name="documentRegisteredDateTime">Дата регистрации документа</param>
+        /// <param name="throwErrorOnUnkwonType">Выбрасывать исключение при ошибке</param>
+        /// <param name="certificate">Параметры организации для штампа</param>
+        /// <param name="proxyData">Параметры доверенности для штампа</param>
+        /// <returns>Преобразованный файл или архив преоразованных файлов</returns>
+        /// <exception cref="Exception"></exception>
+        public static byte[] SimpleFile(
+            byte[] inputFileBytes,
+            string fileName,
+            string documentIndefNumber,
+            DateTime? documentRegisteredDateTime,
+            bool throwErrorOnUnkwonType,
+            Dictionary<string, string> certificate = null,
+            Dictionary<string, string> proxyData = null)
+        {
+            IConvertToPdf converter = ConvertInputFile.Converter(inputFileBytes, fileName);
+            byte[] pdf = converter.ToPdf(inputFileBytes, fileName);
+
+            // Что-то пошло не так
+            if (pdf == null)
+                throw new Exception($"Ошибка при формировании печатной формы документа.");
+
+            // Добавляем штамп и на выход
+            return AddToPdf.AddStamp(pdf, documentIndefNumber, documentRegisteredDateTime, certificate, proxyData);
+        }
         /// <summary>
         /// Обработка zip-архивов
         /// </summary>
@@ -21,7 +52,7 @@ namespace Sample7.Processing
         /// <param name="proxyData">Параметры доверенности для штампа</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static byte[] ProcessInputZipFile(
+        public static byte[] ZipFile(
             byte[] inputFileBytes,
             string fileName,
             string documentIndefNumber,
@@ -48,7 +79,7 @@ namespace Sample7.Processing
                     using var entryStream = zipArchiveEntry.Open();
                     {
                         fileExtention = Path.GetExtension(fileName.Trim()).Substring(1).ToLower();
-                        if (DetectTo.DetectFileType(fileExtention) != PrintServiceSupportedFileType.Unknown)
+                        if (Detector.DetectFileType(fileExtention) != SupportedFileType.Unknown)
                         {
                             entryStream.CopyTo(memoryStream);
                             // В список добавляем только конвертируемые файлы
@@ -64,7 +95,7 @@ namespace Sample7.Processing
             }
             else if (entries.Count == 1)
             {
-                return Processing.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+                return SimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
             }
             else if (entries.Count > 1)
             {
@@ -94,7 +125,7 @@ namespace Sample7.Processing
                 foreach (var item in entries)
                 {
                     // Превращаем его в PDF, повторная проверка не производится, потому что в списке только преобразуемые файлы
-                    var pdf = Processing.ProcessSimpleFile(item.Value, item.Key, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+                    var pdf = SimpleFile(item.Value, item.Key, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
 
                     var fileName = Path.GetFileNameWithoutExtension(item.Key);
                     var file = zipFileResponse.CreateEntry(fileName + "_ПечатнаяФорма.pdf");
@@ -109,3 +140,4 @@ namespace Sample7.Processing
         }
     }
 }
+
