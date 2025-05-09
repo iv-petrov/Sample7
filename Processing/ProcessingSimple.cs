@@ -3,9 +3,9 @@ using Sample7.Detectors;
 using Sample7.Enums;
 using Sample7.PdfAdditions;
 
-namespace Sample7
+namespace Sample7.Processing
 {
-        public static partial class PrintService
+        public static partial class Processing
         {
             /// <summary>
             /// Основная процедура преобразования
@@ -29,10 +29,10 @@ namespace Sample7
                 Dictionary<string, string> proxyData = null)
             {
                 // Определяем тип исходного файла
-                string fileExtention = ConvertTo.GetExtensionFromFileName(fileName);
+                string fileExtention = Path.GetExtension(fileName.Trim()).Substring(1).ToLower();
 
-                // Определяем тип файла
-                var detectedFileType = DetectTo.DetectFileType(fileExtention);
+            // Определяем тип файла
+            var detectedFileType = DetectTo.DetectFileType(fileExtention);
 
                 // тип не определился
                 if (detectedFileType == PrintServiceSupportedFileType.Unknown && throwErrorOnUnkwonType)

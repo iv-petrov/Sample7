@@ -5,9 +5,9 @@ using Sample7.PdfAdditions;
 using System.IO.Compression;
 using System.Text;
 
-namespace Sample7
+namespace Sample7.Processing
 {
-    public static partial class PrintService
+    public static partial class Processing
     {
         /// <summary>
         /// Обработка zip-архивов
@@ -31,7 +31,7 @@ namespace Sample7
             Dictionary<string, string> proxyData = null)
         {
             // Определяем тип исходного файла
-            string fileExtention = ConvertTo.GetExtensionFromFileName(fileName);
+            string fileExtention = Path.GetExtension(fileName.Trim()).Substring(1).ToLower();
 
             byte[] outZip = null;
             if (fileExtention != "zip")
@@ -47,7 +47,7 @@ namespace Sample7
                     using var memoryStream = new MemoryStream();
                     using var entryStream = zipArchiveEntry.Open();
                     {
-                        fileExtention = ConvertTo.GetExtensionFromFileName(zipArchiveEntry.FullName);
+                        fileExtention = Path.GetExtension(fileName.Trim()).Substring(1).ToLower();
                         if (DetectTo.DetectFileType(fileExtention) != PrintServiceSupportedFileType.Unknown)
                         {
                             entryStream.CopyTo(memoryStream);
@@ -64,7 +64,7 @@ namespace Sample7
             }
             else if (entries.Count == 1)
             {
-                return PrintService.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+                return Processing.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
             }
             else if (entries.Count > 1)
             {
@@ -94,7 +94,7 @@ namespace Sample7
                 foreach (var item in entries)
                 {
                     // Превращаем его в PDF, повторная проверка не производится, потому что в списке только преобразуемые файлы
-                    var pdf = PrintService.ProcessSimpleFile(item.Value, item.Key, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+                    var pdf = Processing.ProcessSimpleFile(item.Value, item.Key, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
 
                     var fileName = Path.GetFileNameWithoutExtension(item.Key);
                     var file = zipFileResponse.CreateEntry(fileName + "_ПечатнаяФорма.pdf");

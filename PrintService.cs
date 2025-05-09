@@ -1,8 +1,9 @@
 ﻿using Sample7.Convertors;
+using Sample7.Processing;
 
 namespace Sample7 { 
 
-    public static partial class PrintService
+    public static class PrintService
     {
         /// <summary>
         /// Основная процедура преобразования
@@ -26,13 +27,13 @@ namespace Sample7 {
             Dictionary<string, string> proxyData = null)
         {
             // Определяем тип исходного файла
-            string fileExtention = ConvertTo.GetExtensionFromFileName(fileName);
+            string fileExtention = Path.GetExtension(fileName.Trim()).Substring(1).ToLower();
 
             // Для архивов отдельный обработчик
             if (fileExtention == "zip")
-                return PrintService.ProcessInputZipFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+                return Processing.ProcessInputZipFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
 
-            return PrintService.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
+            return Processing.ProcessSimpleFile(inputFileBytes, fileName, documentIndefNumber, documentRegisteredDateTime, throwErrorOnUnkwonType, certificate, proxyData);
         }
     }
 }

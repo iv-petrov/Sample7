@@ -47,14 +47,5 @@ namespace Sample7.Convertors
             }
             return pdfFileBytes;
         }
-        /// <summary>
-        /// Выделение расширения файла из его имени
-        /// </summary>
-        /// <param name="fileName">Имя файла</param>
-        /// <returns>Расширение в нижнем регистре без начальной точки</returns>
-        public static string GetExtensionFromFileName(string fileName)
-        {
-            return Path.GetExtension(fileName.Trim()).Substring(1).ToLower();
-        }
     }
 }
