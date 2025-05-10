@@ -13,7 +13,6 @@
                 Console.WriteLine(@"Файл {inputFileName} не найден");
                 return;
             }
-            byte[] inputFileBytes = File.ReadAllBytes(inputFileName);
             string documentNumber;
             if (args.Length > 1) 
             {
@@ -24,6 +23,7 @@
                 documentNumber = "Unknown";
             }
             // Ну поехали
+            byte[] inputFileBytes = File.ReadAllBytes(inputFileName);
             PrintService.ProcessInputFile(inputFileBytes, inputFileName, documentNumber, DateTime.Now, false);
             return;
         }
